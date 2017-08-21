@@ -1,9 +1,19 @@
 var express = require('express');
 var router = express.Router();
+var queries = require("../db/queries");
 
-/* GET home page. */
 router.get('/', function(req, res, next) {
-  res.render('index', { title: 'Express' });
+    queries.getAllCourses().then(courses => {
+        return Promise.all(courses.map(course => {
+            return queries.getStudentsByCourse(course.id)
+                .then(students => {
+                    course.students = students;
+                    return course;
+                });
+        }));
+    }).then(courses => {
+        res.send({courses});
+    });
 });
 
 module.exports = router;
